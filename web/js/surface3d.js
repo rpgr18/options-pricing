@@ -345,14 +345,20 @@ export class Surface3D {
       const i = ((pt.x - xlo) / (xhi - xlo)) * (xs.length - 1);
       const j = ((pt.y - ylo) / (yhi - ylo)) * (ys.length - 1);
       const p = this._pm(i, j, pt.z);
+      // Small and semi-transparent on purpose: a liquid chain is a few hundred
+      // quotes, and at full weight they read as the primary mark and bury the
+      // fitted surface they are supposed to be checked against.
+      ctx.globalAlpha = 0.5;
       ctx.beginPath();
-      ctx.arc(p.sx, p.sy, 3.6, 0, Math.PI * 2);
+      ctx.arc(p.sx, p.sy, 2.9, 0, Math.PI * 2);
       ctx.fillStyle = token('--surface-1');
       ctx.fill();
+      ctx.globalAlpha = 0.9;
       ctx.beginPath();
-      ctx.arc(p.sx, p.sy, 2.2, 0, Math.PI * 2);
+      ctx.arc(p.sx, p.sy, 1.7, 0, Math.PI * 2);
       ctx.fillStyle = token('--text-primary');
       ctx.fill();
+      ctx.globalAlpha = 1;
     }
     ctx.restore();
   }
