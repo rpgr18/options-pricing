@@ -1,0 +1,4 @@
+# The only runtime dependency. Everything else -- the optimizers, the normal
+# distribution, the spline and RBF solves, the HTTP server -- is NumPy plus the
+# Python standard library, so this runs on a bare interpreter.
+numpy>=1.22
