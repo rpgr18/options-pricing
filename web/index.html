@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Options Pricing &amp; Greeks Workbench</title>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M2 19 C6 19 7 5 12 5 C17 5 18 19 22 19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      <circle cx="12" cy="5" r="2.1" fill="currentColor"/>
+    </svg>
+    <div class="brand-text">
+      <h1>Options Pricing &amp; Greeks Workbench</h1>
+      <p>Black-Scholes &middot; lattices &middot; Monte Carlo &middot; implied vol surfaces</p>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="status-chip" id="status-chip" role="status" aria-live="polite">
+      <span class="dot"></span><span id="status-text">starting</span>
+    </div>
+    <button class="btn btn-ghost" id="theme-toggle" type="button" aria-label="Switch to light theme">
+      <span id="theme-label">Light</span>
+    </button>
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- ============ shared contract inputs: one control surface for every view ============ -->
+  <aside class="rail" id="rail">
+    <div class="rail-scroll">
+
+      <section class="panel">
+        <h2 class="panel-title">Contract</h2>
+        <div class="field-grid">
+          <label class="field">
+            <span class="field-label">Spot <em>S</em></span>
+            <input type="number" id="in-S" step="0.01" min="0.01" value="100">
+          </label>
+          <label class="field">
+            <span class="field-label">Strike <em>K</em></span>
+            <input type="number" id="in-K" step="0.01" min="0.01" value="100">
+          </label>
+          <label class="field">
+            <span class="field-label">Days to expiry</span>
+            <input type="number" id="in-days" step="1" min="0" value="365">
+          </label>
+          <label class="field">
+            <span class="field-label">Years <em>T</em></span>
+            <input type="number" id="in-T" step="0.0001" min="0" value="1">
+          </label>
+          <label class="field">
+            <span class="field-label">Volatility <em>&sigma;</em></span>
+            <div class="input-suffix"><input type="number" id="in-sigma" step="0.1" min="0.01" value="25"><span>%</span></div>
+          </label>
+          <label class="field">
+            <span class="field-label">Rate <em>r</em></span>
+            <div class="input-suffix"><input type="number" id="in-r" step="0.05" value="4.3"><span>%</span></div>
+          </label>
+          <label class="field">
+            <span class="field-label">Div yield <em>q</em></span>
+            <div class="input-suffix"><input type="number" id="in-q" step="0.05" value="1"><span>%</span></div>
+          </label>
+          <label class="field">
+            <span class="field-label">Moneyness</span>
+            <output id="out-moneyness" class="field-readout">&mdash;</output>
+          </label>
+        </div>
+
+        <div class="seg-row">
+          <div class="segmented" role="radiogroup" aria-label="Option type">
+            <button type="button" data-group="type" data-value="call" class="is-active" role="radio" aria-checked="true">Call</button>
+            <button type="button" data-group="type" data-value="put" role="radio" aria-checked="false">Put</button>
+          </div>
+          <div class="segmented" role="radiogroup" aria-label="Exercise style">
+            <button type="button" data-group="exercise" data-value="european" class="is-active" role="radio" aria-checked="true">European</button>
+            <button type="button" data-group="exercise" data-value="american" role="radio" aria-checked="false">American</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">Numerics</h2>
+        <div class="field-grid">
+          <label class="field">
+            <span class="field-label">Lattice steps</span>
+            <input type="number" id="in-steps" step="10" min="4" max="20000" value="500">
+          </label>
+          <label class="field">
+            <span class="field-label">MC paths</span>
+            <input type="number" id="in-paths" step="10000" min="256" max="5000000" value="200000">
+          </label>
+          <label class="field field-wide">
+            <span class="field-label">Binomial scheme</span>
+            <select id="in-lattice-method">
+              <option value="crr">Cox-Ross-Rubinstein</option>
+              <option value="jarrow_rudd">Jarrow-Rudd (equal probability)</option>
+              <option value="tian">Tian (moment matching)</option>
+              <option value="leisen_reimer">Leisen-Reimer (Peizer-Pratt)</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">Quick scenarios</h2>
+        <div class="chip-row" id="scenario-chips"></div>
+      </section>
+
+      <p class="rail-foot">
+        Greeks follow trading conventions: vega per volatility point, theta per
+        calendar day, rho per 1% of rate.
+      </p>
+    </div>
+  </aside>
+
+  <!-- ============ views ============ -->
+  <main class="main">
+    <nav class="tabs" role="tablist" aria-label="Views">
+      <button role="tab" data-view="pricer" class="is-active" aria-selected="true">Pricer</button>
+      <button role="tab" data-view="greeks" aria-selected="false">Greeks Lab</button>
+      <button role="tab" data-view="surface" aria-selected="false">Vol Surface</button>
+      <button role="tab" data-view="convergence" aria-selected="false">Convergence</button>
+      <button role="tab" data-view="chain" aria-selected="false">Option Chain</button>
+      <button role="tab" data-view="strategy" aria-selected="false">Strategy</button>
+    </nav>
+
+    <div class="views">
+      <section class="view is-active" id="view-pricer" role="tabpanel" aria-label="Pricer"></section>
+      <section class="view" id="view-greeks" role="tabpanel" aria-label="Greeks Lab"></section>
+      <section class="view" id="view-surface" role="tabpanel" aria-label="Vol Surface"></section>
+      <section class="view" id="view-convergence" role="tabpanel" aria-label="Convergence"></section>
+      <section class="view" id="view-chain" role="tabpanel" aria-label="Option Chain"></section>
+      <section class="view" id="view-strategy" role="tabpanel" aria-label="Strategy"></section>
+    </div>
+  </main>
+</div>
+
+<div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>
